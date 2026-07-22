@@ -1,3 +1,6 @@
+** This is a fork of the original from https://github.com/ping/odmpy and only exists to fix the failing certificate **
+
+
 # odmpy
 
 A command line manager for OverDrive/Libby loans. Originally a python port of [overdrive](https://github.com/chbrown/overdrive), it now supports downloading of various loan types such as **audiobooks**, **eBooks**, and **magazines** via [Libby](https://help.libbyapp.com/en-us/6103.htm).
