@@ -253,7 +253,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         with self.test_data_dir.joinpath("magazine", "rosters.json").open(
             "r", encoding="utf-8"
@@ -274,7 +274,7 @@ class OdmpyLibbyTests(BaseTestCase):
             body="",
         )
         responses.get(
-            "https://sentry-read.svc.overdrive.com/open/magazine/card/123456789/title/9999999",
+            "https://sentry.libbyapp.com/open/magazine/card/123456789/title/9999999",
             json={
                 "message": "xyz",
                 "urls": {
@@ -440,13 +440,13 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         with self.test_data_dir.joinpath("ebook", "ebook.acsm").open(
             "r", encoding="utf-8"
         ) as a:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999/fulfill/ebook-epub-adobe",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999/fulfill/ebook-epub-adobe",
                 content_type="application/xml",
                 body=a.read(),
             )
@@ -483,7 +483,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         with self.test_data_dir.joinpath("ebook", "rosters.json").open(
             "r", encoding="utf-8"
@@ -504,7 +504,7 @@ class OdmpyLibbyTests(BaseTestCase):
             body="",
         )
         responses.get(
-            "https://sentry-read.svc.overdrive.com/open/book/card/123456789/title/9999999",
+            "https://sentry.libbyapp.com/open/book/card/123456789/title/9999999",
             json={
                 "message": "xyz",
                 "urls": {
@@ -635,10 +635,10 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         responses.get(
-            "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999990/fulfill/ebook-epub-open",
+            "https://sentry.libbyapp.com/card/123456789/loan/9999990/fulfill/ebook-epub-open",
             status=302,
             headers={"Location": "https://openepub-gk.cdn.overdrive.com/9999990"},
         )
@@ -677,7 +677,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         with self.test_data_dir.joinpath("audiobook", "openbook.json").open(
             "r", encoding="utf-8"
@@ -691,7 +691,7 @@ class OdmpyLibbyTests(BaseTestCase):
             body="",
         )
         responses.get(
-            "https://sentry-read.svc.overdrive.com/open/audiobook/card/123456789/title/9999999",
+            "https://sentry.libbyapp.com/open/audiobook/card/123456789/title/9999999",
             json={
                 "message": "xyz",
                 "urls": {
@@ -741,7 +741,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as b:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999/fulfill/audiobook-mp3",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999/fulfill/audiobook-mp3",
                 content_type="application/xml",
                 body=b.read(),
             )
@@ -1081,12 +1081,12 @@ class OdmpyLibbyTests(BaseTestCase):
         if not settings_folder.exists():
             settings_folder.mkdir(parents=True, exist_ok=True)
         responses.post(
-            "https://sentry-read.svc.overdrive.com/chip?client=dewey",
+            "https://sentry.libbyapp.com/chip?client=dewey",
             content_type="application/json",
             json={"chip": "xxx", "identity": "xxxx"},
         )
         responses.post(
-            "https://sentry-read.svc.overdrive.com/chip/clone/code",
+            "https://sentry.libbyapp.com/chip/clone/code",
             content_type="applications/json",
             json={},
         )
@@ -1102,12 +1102,12 @@ class OdmpyLibbyTests(BaseTestCase):
         if not settings_folder.exists():
             settings_folder.mkdir(parents=True, exist_ok=True)
         responses.post(
-            "https://sentry-read.svc.overdrive.com/chip?client=dewey",
+            "https://sentry.libbyapp.com/chip?client=dewey",
             content_type="application/json",
             json={"chip": "xxx", "identity": "xxxx"},
         )
         responses.post(
-            "https://sentry-read.svc.overdrive.com/chip/clone/code",
+            "https://sentry.libbyapp.com/chip/clone/code",
             content_type="applications/json",
             status=HTTPStatus.BAD_REQUEST,
             json={},
@@ -1122,17 +1122,17 @@ class OdmpyLibbyTests(BaseTestCase):
         if not settings_folder.exists():
             settings_folder.mkdir(parents=True, exist_ok=True)
         responses.post(
-            "https://sentry-read.svc.overdrive.com/chip?client=dewey",
+            "https://sentry.libbyapp.com/chip?client=dewey",
             content_type="application/json",
             json={"chip": "xxx", "identity": "xxxx"},
         )
         responses.post(
-            "https://sentry-read.svc.overdrive.com/chip/clone/code",
+            "https://sentry.libbyapp.com/chip/clone/code",
             content_type="applications/json",
             json={},
         )
         responses.get(
-            "https://sentry-read.svc.overdrive.com/chip/sync",
+            "https://sentry.libbyapp.com/chip/sync",
             content_type="applications/json",
             json={},
         )
@@ -1149,7 +1149,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         with self.assertLogs(run.__module__, level="INFO") as context:
             run(["libby", "--settings", str(settings_folder)], be_quiet=True)
@@ -1203,7 +1203,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         # generate fake settings
         libby_settings = settings_folder.joinpath("libby.json")
@@ -1233,12 +1233,12 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as f:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync",
+                "https://sentry.libbyapp.com/chip/sync",
                 content_type="application/json",
                 json=json.load(f),
             )
             responses.delete(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999",
                 content_type="application/json",
                 json={},
             )
@@ -1257,12 +1257,12 @@ class OdmpyLibbyTests(BaseTestCase):
         ) as f:
             sync_state = json.load(f)
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync",
+                "https://sentry.libbyapp.com/chip/sync",
                 content_type="application/json",
                 json=sync_state,
             )
             responses.put(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999",
                 content_type="application/json",
                 json=sync_state["loans"][0],
             )
@@ -1292,12 +1292,12 @@ class OdmpyLibbyTests(BaseTestCase):
         ) as f:
             sync_state = json.load(f)
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync",
+                "https://sentry.libbyapp.com/chip/sync",
                 content_type="application/json",
                 json=sync_state,
             )
             responses.put(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999",
                 content_type="application/json",
                 json={
                     "result": "upstream_failure",
@@ -1309,7 +1309,7 @@ class OdmpyLibbyTests(BaseTestCase):
                 status=HTTPStatus.BAD_REQUEST,
             )
             responses.post(
-                "https://sentry-read.svc.overdrive.com/card/123456789/hold/9999999",
+                "https://sentry.libbyapp.com/card/123456789/hold/9999999",
                 content_type="application/json",
                 match=[
                     matchers.json_params_matcher(
@@ -1358,12 +1358,12 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as f:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync",
+                "https://sentry.libbyapp.com/chip/sync",
                 content_type="application/json",
                 json=json.load(f),
             )
             responses.delete(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999",
                 content_type="application/json",
                 json={},
             )
@@ -1381,13 +1381,13 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as s:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/chip/sync", json=json.load(s)
+                "https://sentry.libbyapp.com/chip/sync", json=json.load(s)
             )
         with self.test_data_dir.joinpath("ebook", "ebook.acsm").open(
             "r", encoding="utf-8"
         ) as a:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999/fulfill/ebook-epub-adobe",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999/fulfill/ebook-epub-adobe",
                 content_type="application/xml",
                 body=a.read(),
             )
@@ -1424,7 +1424,7 @@ class OdmpyLibbyTests(BaseTestCase):
             "r", encoding="utf-8"
         ) as b:
             responses.get(
-                "https://sentry-read.svc.overdrive.com/card/123456789/loan/9999999/fulfill/audiobook-mp3",
+                "https://sentry.libbyapp.com/card/123456789/loan/9999999/fulfill/audiobook-mp3",
                 content_type="application/xml",
                 body=b.read(),
             )

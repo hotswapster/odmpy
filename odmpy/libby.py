@@ -36,7 +36,7 @@ else:
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
-from .libby_errors import ClientConnectionError, ClientTimeoutError, ErrorHandler
+from .libby_errors import ClientConnectionError, ClientError, ClientTimeoutError, ErrorHandler
 
 #
 # Client for the Libby web API, and helper functions to make sense
@@ -421,9 +421,14 @@ class LibbyClient(object):
         :param authenticated:
         :return:
         """
+        params = {"c": "d:22.0.2", "s": "0"}
+        chip = self.identity.get("chip")
+        if authenticated and isinstance(chip, str) and chip:
+            params["v"] = chip.split("-", 1)[0]
+
         res: Dict = self.make_request(
             "chip",
-            params={"client": "dewey"},
+            params=params,
             method="POST",
             authenticated=authenticated,
         )
@@ -707,11 +712,49 @@ class LibbyClient(object):
         """
         if format_id not in DOWNLOADABLE_FORMATS:
             raise ValueError(f"Invalid format_id: {format_id}")
-        res: Dict = self.make_request(
-            f"card/{card_id}/loan/{loan_id}/fulfill/{format_id}",
-            return_res=True,
+        return self._fulfillment_response(
+            loan_id, card_id, format_id, headers=self.default_headers()
         )
-        return res
+
+    def _fulfillment_response(
+        self, loan_id: str, card_id: str, format_id: str, headers: Dict
+    ) -> requests.Response:
+        """Request fulfilment and refresh a rejected chip once, if needed."""
+        endpoint = f"card/{card_id}/loan/{loan_id}/fulfill/{format_id}"
+        try:
+            return self.make_request(
+                endpoint,
+                headers=headers,
+                return_res=True,
+                allow_redirects=False,
+            )
+        except ClientError as error:
+            result = error.error_response_obj.get("result")
+            if result != "missing_chip":
+                raise
+
+            self.get_chip(authenticated=True)
+            return self.make_request(
+                endpoint,
+                headers=headers,
+                return_res=True,
+                allow_redirects=False,
+            )
+
+    @staticmethod
+    def _fulfillment_url(response: requests.Response) -> Optional[str]:
+        location = response.headers.get("Location")
+        if location:
+            return location
+
+        try:
+            payload = response.json()
+        except ValueError:
+            return None
+
+        fulfill = payload.get("fulfill", {})
+        href = fulfill.get("href") if isinstance(fulfill, dict) else None
+        return href if isinstance(href, str) else None
 
     @staticmethod
     def _urlretrieve(
@@ -765,25 +808,15 @@ class LibbyClient(object):
             raise ValueError(f"Unsupported format_id: {format_id}")
 
         headers = self.default_headers()
-        headers["Accept"] = "*/*"
-
-        if format_id in (LibbyFormats.EBookEPubOpen, LibbyFormats.EBookPDFOpen):
-            res_redirect: requests.Response = self.make_request(
-                f"card/{card_id}/loan/{loan_id}/fulfill/{format_id}",
-                headers=headers,
-                return_res=True,
-                allow_redirects=False,
-            )
+        res = self._fulfillment_response(loan_id, card_id, format_id, headers)
+        fulfillment_url = self._fulfillment_url(res)
+        if fulfillment_url:
             return self._urlretrieve(
-                res_redirect.headers["Location"], headers=headers, timeout=self.timeout
+                fulfillment_url, headers=headers, timeout=self.timeout
             )
-
-        res: requests.Response = self.make_request(
-            f"card/{card_id}/loan/{loan_id}/fulfill/{format_id}",
-            headers=headers,
-            return_res=True,
-        )
-        return res.content
+        if res.content:
+            return res.content
+        raise ValueError("Unexpected fulfillment response")
 
     def open_loan(self, loan_type: str, card_id: str, title_id: str) -> Dict:
         """

@@ -1,6 +1,7 @@
 import logging
 import os
 import unittest
+from unittest.mock import Mock, patch
 from collections import OrderedDict
 from datetime import datetime, timezone, timedelta
 from http import HTTPStatus
@@ -414,7 +415,7 @@ class LibbyClientTests(BaseTestCase):
             },
         }
         responses.get(
-            "https://sentry-read.svc.overdrive.com/chip/sync",
+            "https://sentry.libbyapp.com/chip/sync",
             content_type="application/json",
             status=HTTPStatus.BAD_REQUEST,
             json=err_result,
@@ -431,7 +432,7 @@ class LibbyClientTests(BaseTestCase):
     @responses.activate
     def test_libby_error_forbidden(self):
         responses.get(
-            "https://sentry-read.svc.overdrive.com/chip/sync",
+            "https://sentry.libbyapp.com/chip/sync",
             status=HTTPStatus.FORBIDDEN,
             body="",
         )
@@ -440,16 +441,65 @@ class LibbyClientTests(BaseTestCase):
             _ = client.sync()
         self.assertEqual(
             context.exception.msg,
-            "403 Client Error: Forbidden for url: https://sentry-read.svc.overdrive.com/chip/sync",
+            "403 Client Error: Forbidden for url: https://sentry.libbyapp.com/chip/sync",
         )
         self.assertEqual(context.exception.http_status, HTTPStatus.FORBIDDEN)
         self.assertEqual(context.exception.error_response, "")
 
+    def test_libby_get_chip_uses_web_client_params(self):
+        client = LibbyClient(
+            settings_folder=str(self.test_downloads_dir / "modern-chip"),
+            logger=self.logger,
+        )
+        client.make_request = Mock(
+            return_value={"chip": "abcd1234-0000", "identity": "first"}
+        )
+        client.get_chip()
+        self.assertEqual(
+            client.make_request.call_args.kwargs["params"],
+            {"c": "d:22.0.2", "s": "0"},
+        )
+
+        client.make_request.reset_mock()
+        client.make_request.return_value = {"chip": "newchip-0000", "identity": "second"}
+        client.get_chip(authenticated=True)
+        self.assertEqual(
+            client.make_request.call_args.kwargs["params"],
+            {"c": "d:22.0.2", "s": "0", "v": "abcd1234"},
+        )
+        client.libby_session.close()
+
     @responses.activate
+    def test_libby_fulfill_recovers_missing_chip_once(self):
+        client = LibbyClient(
+            settings_folder=str(self.test_downloads_dir / "fulfilment"),
+            logger=self.logger,
+        )
+        client.identity = {"chip": "newchip-0000", "identity": "old"}
+        missing_chip = ClientError("forbidden", 403, '{"result":"missing_chip"}')
+        response = Mock(headers={}, content=b"")
+        response.json.return_value = {"fulfill": {"href": "https://files.example/license.acsm"}}
+        client.make_request = Mock(
+            side_effect=[missing_chip, {"chip": "fresh-0000", "identity": "fresh"}, response]
+        )
+        with patch.object(LibbyClient, "_urlretrieve", return_value=b"acsm"):
+            result = client.fulfill_loan_file("loan", "card", LibbyFormats.EBookEPubAdobe)
+        self.assertEqual(result, b"acsm")
+        self.assertEqual(client.make_request.call_count, 3)
+        self.assertEqual(
+            client.make_request.call_args_list[1].kwargs["params"],
+            {"c": "d:22.0.2", "s": "0", "v": "newchip"},
+        )
+
+        whoa = ClientError("forbidden", 403, '{"result":"whoa"}')
+        client.make_request = Mock(side_effect=whoa)
+        with self.assertRaises(ClientError):
+            client.fulfill_loan_file("loan", "card", LibbyFormats.EBookEPubAdobe)
+        self.assertEqual(client.make_request.call_count, 1)
     def test_libby_borrow_hold(self):
         hold = {"id": "123456", "type": {"id": "ebook"}, "cardId": "99999"}
         responses.post(
-            f'https://sentry-read.svc.overdrive.com/card/{hold["cardId"]}/loan/{hold["id"]}',
+            f'https://sentry.libbyapp.com/card/{hold["cardId"]}/loan/{hold["id"]}',
             json={},
             match=[
                 matchers.json_params_matcher(
@@ -471,7 +521,7 @@ class LibbyClientTests(BaseTestCase):
         username = "12345678"
         password = "1234"
         responses.post(
-            f"https://sentry-read.svc.overdrive.com/auth/link/{website_id}",
+            f"https://sentry.libbyapp.com/auth/link/{website_id}",
             json={},
             match=[
                 matchers.json_params_matcher(
@@ -487,7 +537,7 @@ class LibbyClientTests(BaseTestCase):
         card_id = "12345678"
         card_name = "Test"
         responses.put(
-            f"https://sentry-read.svc.overdrive.com/card/{card_id}",
+            f"https://sentry.libbyapp.com/card/{card_id}",
             json={"message": card_name},
             match=[matchers.query_param_matcher({"card_name": card_name})],
         )
