@@ -1,4 +1,4 @@
-** This is a fork of the original from https://github.com/ping/odmpy and only exists to fix the failing certificate **
+**This is a fork of the original from https://github.com/ping/odmpy and only exists to fix the failing certificate**
 
 
 # odmpy
