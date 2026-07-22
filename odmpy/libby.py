@@ -290,7 +290,11 @@ class LibbyClient(object):
             libby_session.mount(prefix, adapter)
         self.libby_session = libby_session
         self.user_agent = kwargs.pop("user_agent", USER_AGENT)
-        self.api_base = "https://sentry-read.svc.overdrive.com/"
+        # sentry-read.svc.overdrive.com's certificate stopped covering that
+        # name in July 2026 (reissued for *.odrsre.overdrive.com only).
+        # sentry.libbyapp.com is the same service and is the host the
+        # official libbyapp.com web client uses; its certificate is valid.
+        self.api_base = "https://sentry.libbyapp.com/"
 
     @staticmethod
     def is_valid_sync_code(code: str) -> bool:
